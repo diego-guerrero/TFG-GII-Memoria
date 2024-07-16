@@ -1,0 +1,36 @@
+\section{Extracción de requisitos}
+\label{sec:requisitos}
+Tomando como base el objetivo principal del proyecto (véase el \referenciaCapitulo{cap:objetivos}), y los distintos objetivos articulados en torno a él, el primer paso para acometer la descripción informática del trabajo es la enumeración de sus requisitos, reflejando breve, clara y concisamente las tareas que se ejecutarán.
+
+Este Trabajo Fin de Grado recoge dos tipos de requisitos: funcionales y no funcionales. Se asocia a cada requisito un identificador de la forma \texttt{RX-Y}, donde \texttt{X} designa el tipo de requisito (\texttt{F} para funcionales y \texttt{N} para no funcionales) e \texttt{Y} es un valor numérico correlativo. El uso de estos identificadores quedará extendido a todo el presente documento.
+
+\subsection{Requisitos funcionales}
+\label{subsec:listaReqsFuncionales}
+Se introducen a continuación los requisitos funcionales, que son aquellos que tienen como fin proporcionar mecanismos que permitan a los usuarios realizar procesos de negocio que les aporten valor; esto es, los conducentes a la incorporación de nueva funcionalidad en la aplicación.
+
+Se recogen utilizando el formato típico de las ``historias de usuario'', una práctica extraída de eXtreme Programming (XP) \cite{XP_HistoriasUsuario}, redactándolos en un formato común preestablecido que es claro, conciso y fácilmente comprensible que sitúa en un papel preponderante las necesidades de los usuarios finales. Los requisitos son:
+\begin{itemize}
+    \item \texttt{\textbf{RF-1}}: como usuario registrado en \textit{VSCode4Teaching}, quiero poder acceder a mis cursos y ejercicios. Para ello, quiero poder iniciar sesión con mis credenciales para autenticarme y obtener acceso a mi información (\texttt{\textbf{RF-1.1}}) y, además, quiero poder visualizar mis cursos impartidos o matriculados y mis ejercicios (\texttt{\textbf{RF-1.2}}).
+    \item \texttt{\textbf{RF-2}}: como profesor, quiero poder crear ejercicios nuevos en los cursos que imparto proporcionando una plantilla inicial y, opcionalmente, una propuesta de solución para que los alumnos puedan resolverlos.
+    \item \texttt{\textbf{RF-3}}: como profesor, quiero poder visualizar en tiempo real información básica sobre el progreso de los estudiantes al realizar los ejercicios que he propuesto para poder conocer en todo momento la situación en que se encuentra cada ejercicio y cada estudiante.
+    \item \texttt{\textbf{RF-4}}: como profesor, quiero poder descargar cuando lo desee los ficheros que compongan las propuestas de resolución de los ejercicios de los estudiantes para poder almacenarlas y visualizarlas, así como conocer de qué estudiante es cada una de ellas para poder asociar las distintas entregas con sus autores.
+    \item \texttt{\textbf{RF-5}}: como profesor, quiero poder configurar los parámetros que determinan si la solución de los ejercicios es pública y si los estudiantes pueden editar sus propuestas tras descargarla para poder tener el control completo sobre cuándo se divulga la solución propuesta.
+    \item \texttt{\textbf{RF-6}}: como profesor, quiero poder gestionar qué usuarios forman parte de mi curso para poder matricular o revocar el acceso de los estudiantes y para poder incorporar o eliminar a otros profesores.
+    \item \texttt{\textbf{RF-7}}: como profesor, quiero tener la capacidad de compartir un código único de cada uno de mis cursos para poder dárselo a los estudiantes y que, de ese modo, se automatriculen en mi curso.
+    \item \texttt{\textbf{RF-8}}: como alumno, quiero poder inscribirme en un cursos nuevos utilizando códigos proporcionados por los profesores para poder realizar sus ejercicios.
+    \item \texttt{\textbf{RF-9}}: como alumno, quiero poder seleccionar un directorio de mi ordenador y usarlo para poder visualizar los ejercicios de un curso y sus ficheros.
+    \item \texttt{\textbf{RF-10}}: como alumno, quiero poder iniciar un ejercicio nuevo y descargar su plantilla o reanudar un ejercicio y descargar mi progreso para poder realizarlo.
+    \item \texttt{\textbf{RF-11}}: como alumno, quiero poder sincronizar automáticamente los ejercicios cuando los modifico y revisar el progreso de la sincronización para asegurarme de que se está almacenando correctamente.
+    \item \texttt{\textbf{RF-12}}: como alumno, quiero poder marcar un ejercicio como finalizado para indicárselo al profesor y, de ese modo, consolidar el estado final de mi propuesta, ya que no podré volver a editarla.
+\end{itemize}
+
+\subsection{Requisitos no funcionales}
+\label{subsec:listaReqsNoFuncionales}
+Se recogen a continuación los requisitos no funcionales, que son aquellos que tienen como fin la mejora de los atributos de calidad del proyecto y de su \textit{software}, atendiendo a necesidades existentes alrededor de la funcionalidad que aportan valor al \textit{software} en sí mismo y, en consecuencia, a los usuarios. Estos son:
+\begin{itemize}
+    \item \texttt{\textbf{RN-1}}: mostrar un aviso en los navegadores no compatibles con la \textit{File System Access API}.
+    \item \texttt{\textbf{RN-2}}: generar un aspecto visual común para la aplicación web de \textit{VSCode4Teaching} que sea intuitivo, fácil de comprender y coherente con la extensión para Visual Studio Code preexistente.
+    \item \texttt{\textbf{RN-3}}: mejorar el sistema de autenticación existente para encriptar el \textit{token} JWT\footnote{JWT. Véase la \referenciaSeccion{subsec:rn3}.} mediante cifrado simétrico.
+    \item \texttt{\textbf{RN-4}}: adaptar la generación de imágenes Docker del servidor para incorporar la aplicación web.
+    \item \texttt{\textbf{RN-5}}: migrar el sistema de integración continua de Travis CI a GitHub Actions, adaptarlo a la nueva composición del proyecto y ampliar su alcance y tareas realizadas.
+\end{itemize}

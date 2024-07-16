@@ -1,0 +1,65 @@
+\subsubsection{\texttt{RN-4}: adaptación de generación de imágenes Docker a nueva arquitectura}
+\label{subsec:rn4}
+
+El proyecto \textit{VSCode4Teaching} ya contaba previamente con la capacidad ejecutar su servidor a través de una imagen Docker, embebiendo en él la aplicación web Angular auxiliar como recurso estático. Además, se disponía de un fichero en formato YAML\footnote{YAML. Siglas de ``otro lenguaje de marcado más'' (del inglés \textit{Yet Another Markup Language}). Es un lenguaje de marcado de fácil lectura y comprensión que se aprovecha de la indentación para la jerarquización de declaraciones.}, \textit{docker-compose.yml}, para la orquestación de esta imagen con un contenedor para el sistema de persistencia basado en MySQL mediante Docker Compose.
+
+Aunque la arquitectura del proyecto no ha variado al ejecutar la evolución realizada en este Trabajo Fin de Grado, se confiere mayor importancia a la aplicación web, que ahora busca ser sustitutiva o complementaria a la extensión para Visual Studio Code. La aplicación web auxiliar empleada anteriormente quedaba desplegada en el servidor en la ruta \texttt{/app}. Para mostrarla directamente al acceder a la raíz y, además, hacerla completamente compatible con el sistema de \textit{routing} propio de Angular (más información en la \referenciaSeccion{subsec:tecAngular}), se ha modificado el formato del despliegue e introducido un nuevo interceptor en el servidor que actúa como \textit{middleware}; esto es, como una capa intermedia de lógica ejecutada antes que el cotejamiento de rutas del servidor que tiene como finalidad detectar si las peticiones entrantes deben ser respondidas por el propio servidor o si deben ser derivadas a la aplicación web Angular para que esta, a través de su propia lógica de enrutamiento, ofrezca como respuesta los recursos gráficos necesarios.
+
+Esta modificación de la lógica ha permitido preservar el método previamente empleado para la generación de la imagen Docker del servidor y la aplicación web. Esta configuración está alojada en el fichero \textit{Dockerfile} situado en la raíz del proyecto, en el que se define la construcción de la imagen en formato \textit{multi-stage}\footnote{\textit{Multi-stage}. Del inglés ``múltiples etapas'', se dice que un fichero de configuración es \textit{multi-stage} cuando se ejecutan varias fases en contenedores aislados y diferentes para dar lugar a una imagen final \cite{DockerfileMultistage}.}, articulándola en tres pasos ejecutados secuencialmente, tal como evidencia el \referenciaCodigo{cod:dockerfile}: compilación de la aplicación Angular en un contenedor Node, dando lugar a sendos recursos estáticos, compilación del servidor en un contenedor Maven (junto con los ficheros estáticos obtenidos en el paso anterior, que quedan copiados dentro del directorio del servidor destinado a este tipo de recursos) y generación de la imagen final sobre una base JDK que permite ejecutar la aplicación Java compilada en el paso anterior.
+
+\begin{lstlisting}[language=Dockerfile,caption={Fichero \textit{Dockerfile} del proyecto, encargado de definir el proceso de generación de la imagen Docker del servidor y la aplicación web.},label=cod:dockerfile]
+FROM node:18 AS angular
+COPY vscode4teaching-webapp /usr/src/app
+WORKDIR /usr/src/app
+RUN ["npm", "install"]
+RUN ["npm", "run", "build"]
+
+FROM maven:3.9.7-eclipse-temurin-11 AS builder
+COPY vscode4teaching-server /data
+COPY --from=angular /usr/src/app/dist/vscode4teaching /data/src/main/resources/static/
+WORKDIR /data
+RUN ["mvn", "clean", "package"]
+
+FROM eclipse-temurin:11
+COPY --from=builder /data/target/vscode4teaching-server-*.jar ./app/vscode4teaching-server.jar
+EXPOSE 8080
+ENTRYPOINT [ "java", "-jar", "./app/vscode4teaching-server.jar" ]
+\end{lstlisting}
+
+Además, se ha ejecutado un cambio de localización de ficheros: la definición de Docker Compose, \textit{docker-compose.yml}, y el que contiene las variables de entorno que este último emplea (\textit{.env}) se han trasladado a la raíz del proyecto, donde ya se localizaba previamente el \textit{Dockerfile}.
+
+Anteriormente se introducía en la imagen Docker un \textit{script} de \textit{shell} para organizar la sincronización de dependencias: preguntaba cada cierto tiempo si se disponía de una conexión válida con el sistema de persistencia configurado y solo cuando esta condición se cumplía, el \textit{script} lanzaba la ejecución del servidor, que requiere necesariamente disponer de la base de datos configurada desde su mismo inicio. Esta implementación se ha visto reemplazada por el uso del mecanismo de \textit{healthcheck}, que es una comprobación declarada como parte de la imagen empleada para la ejecución del contenedor de la base de datos, de modo que se relega en Docker Compose la responsabilidad de orquestar el funcionamiento de ambos contenedores. El \referenciaCodigo{cod:dockerCompose} muestra un fragmento del fichero \textit{docker-compose.yml} en el que se configura la dependencia entre contenedores y el mecanismo de espera mediante esta comprobación: la aplicación declara ser dependiente de la base de datos (\texttt{depends-on}), por lo que Docker Compose no ejecutará este contenedor hasta que la base de datos esté ``sana'', introduciendo en su configuración el mecanismo para comprobar cuándo este contenedor alcanza esta condición tras su inicialización.
+
+\begin{lstlisting}[language=YAML,caption={Fichero \textit{docker-compose.yml} empleado para la orquestación de la imagen Docker del servidor con un contenedor para la base de datos.},label=cod:dockerCompose]
+name: vscode4teaching
+
+services:
+  app:
+    image: vscode4teaching/vscode4teaching:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - path: .env
+        required: true
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT}
+    volumes:
+      - ./volume-v4t:${V4T_FILEDIRECTORY}
+    restart: on-failure:6
+  db:
+    image: mysql:8.4.0
+    restart: on-failure:3
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${SPRING_DATASOURCE_USERNAME}
+      MYSQL_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+    volumes:
+      - ./volume-mysql:/var/lib/mysql
+    healthcheck:
+      test: "mysqladmin ping -h 127.0.0.1 || exit 1"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+\end{lstlisting}

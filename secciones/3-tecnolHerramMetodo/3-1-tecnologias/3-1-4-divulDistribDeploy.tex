@@ -1,0 +1,32 @@
+\subsection{Divulgación, despliegue y distribución}
+\label{subsec:tecDivulgDistribDeploy}
+
+Si bien se confiere al diseño e implementación del \textit{software} un papel preponderante dentro del ciclo de desarrollo, existen otras tareas fundamentales que las circundan y que cobran una especial importancia al finalizar cada iteración del proceso \textit{software}: la divulgación del código fuente, especialmente reseñable en proyectos de código abierto como \textit{VSCode4Teaching}; la distribución de las nuevas versiones publicadas al conjunto de usuarios finales y el despliegue de las actualizaciones son parte esencial del proceso \textit{software}. Se introducen a continuación las principales tecnologías empleadas para la consecución de estas tareas, si bien a estas se suman algunas herramientas descritas en la \referenciaSeccion{sec:herramientas}, tales como GitHub Actions, el sistema empleado para la integración y entrega continuos.
+
+\subsubsection{Divulgación del código: GitHub}
+\label{subsec:tecGitHub}
+GitHub es la ``plataforma empleada para almacenar, compartir y trabajar junto con otros usuarios para escribir código'' \cite{GitHub} más extendida en la comunidad de desarrolladores de \textit{software}, ya que alberga más de 420 millones de repositorios de código fuente creados por más de 100 millones de desarrolladores \cite{GitHubCifras}.
+
+Si bien GitHub comenzó siendo un servidor remoto donde alojar repositorios de código fuente basados en el uso de \textit{git} como sistema de control de versiones, ha venido incorporando numerosas herramientas asociadas que lo consolidan hoy como un ecosistema para no solo almacenar y divulgar proyectos \textit{software}, sino también para trabajar sobre ellos en entornos remotos (GitHub Codespaces), facilitar la colaboración de los desarrolladores de los proyectos y gestionar la seguridad de los proyectos mediante mecanismos automatizados para la detección de vulnerabilidades, entre otras herramientas de utilidad para la gestión de proyectos.
+
+GitHub viene siendo empleado como sistema de almacenamiento remoto del proyecto \textit{VSCode4Teaching} desde su inicio. El presente hito evolutivo, además, propone un uso aún mayor de las ventajas que aporta GitHub mediante la utilización de GitHub Actions que, desarrollado en la \referenciaSeccion{subsec:herCiCd}, es la herramienta que se emplea para el nuevo sistema de integración continua del proyecto.
+
+La \referenciaSeccion{subsec:distribFuente} incluye más información acerca de su utilización como punto de divulgación del código fuente como código abierto y \textit{software} libre.
+
+\subsubsection{Despliegue del servidor y la aplicación web: Docker}
+\label{subsec:tecDocker}
+Docker es ``una plataforma diseñada para ayudar a los desarrolladores a construir, compartir y ejecutar aplicaciones modernas'' \cite{Docker}. Alrededor de Docker existe un amplio abanico de tecnologías disponibles, entre las que cabe destacar su motor de ejecución, \textit{Docker Engine}, que está disponible como código abierto bajo licencia Apache 2.0 y que dispone de un servidor capaz de ejecutar imágenes en contenedores y de una interfaz por línea de comandos para operar con él \cite{DockerEngine}.
+
+En este ámbito, se conoce como contenedor a una ``unidad estandarizada para el desarrollo, entrega y despliegue de paquetes \textit{software} que empaqueta el código y todas sus dependencias para ejecutar aplicaciones rápida y fiablemente'' \cite{DockerContainers}. La principal ventaja derivada del uso de contenedores como entorno de ejecución de aplicaciones es que la posibilidad de dotar a cada contenedor de un entorno aislado que cumpla los requerimientos \textit{software} necesarios para cada aplicación con independencia de la plataforma sobre la que se ejecute el motor de ejecución de Docker, proporcionando ventajas semejantes a la virtualización sin necesidades \textit{hardware} tan altas como las que requiere este formato. La independencia de la plataforma viene dada por el uso de imágenes, que son las especificaciones sobre las condiciones \textit{software} en las que debe ejecutarse un determinado código fuente al introducirse en un contenedor; esto es, las imágenes se especifican y generan para dar lugar a contenedores que las ejecutan. La especificación de imágenes Docker se realiza a través de los \textit{Dockerfile}, que son los ``ficheros de texto que contienen las instrucciones para generar una imagen a partir de un código fuente [\dots] empleando una sintaxis específicamente definida'' \cite{Dockerfile}.
+
+Del ecosistema de tecnologías alrededor de Docker, también se utiliza Docker Compose en este proyecto. Docker Compose es una ``herramienta que permite definir y ejecutar aplicaciones basadas en múltiples contenedores'' \cite{DockerCompose}, pudiendo así redactar instrucciones, declaraciones y especificaciones mediante una determinada sintaxis para orquestar el funcionamiento de distintos contenedores en un entorno compartido, tal como se requiere para ejecutar \textit{VSCode4Teaching} junto con una instancia de un sistema gestor de bases de datos empleado para la persistencia.
+
+El detalle acerca del requisito \referenciaConTT{subsec:rn4}{RN-4} incluye información acerca de la utilización del ecosistema Docker durante este nuevo hito evolutivo de \textit{VSCode4Teaching}.
+
+\subsubsection{Distribución: Docker Hub y Visual Studio Code Marketplace}
+\label{subsec:tecDistrib}
+Además de las tecnologías desarrolladas en la sección anterior, el proyecto \textit{VSCode4Teaching} también hace uso de Docker Hub, que es el ``repositorio de imágenes más grande del mundo, incluyendo imágenes de la comunidad de desarrolladores y de proyectos de código abierto'' \cite{DockerHub}. La imagen Docker generada en el proyecto \textit{VSCode4Teaching}, que permite ejecutar el servidor y la aplicación web, se publica en Docker Hub.
+
+Por otro lado, la extensión para Visual Studio Code queda divulgada a través del Visual Studio Code Marketplace, que es un repositorio público para la publicación de extensiones para este IDE disponible para la descarga e instalación de extensiones desde dentro del propio entorno, permitiendo así a los usuarios pueden buscar extensiones publicadas y descargarlas en su instancia local del editor de forma gratuita, rápida y sencilla \cite{VSCodeMarketplace}.
+
+La \referenciaSeccion{subsec:distribArtefactos} incluye información detallada sobre cómo se hace uso de estos repositorios en el proyecto \textit{VSCode4Teaching}.

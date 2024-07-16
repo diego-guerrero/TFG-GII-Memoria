@@ -1,0 +1,179 @@
+\chapter{Detalle del algoritmo de sincronización de ejercicios}
+\label{anx:bajoNivelRF11}
+
+Descendiendo al bajo nivel, la sincronización automática del directorio de cada ejercicio se basa en un algoritmo que realiza un recorrido en profundidad de la carpeta para dar lugar a una estructura arborescente que es comparada con su versión anterior para detectar las divergencias, que se interpretan como creaciones, modificaciones o eliminaciones, añadiéndolas en una cola de prioridad que alimenta un procedimiento que lanza los trabajos encolados para remitirlos al servidor. Se analizan a continuación las distintas partes de este algoritmo.
+
+El primer punto del algoritmo es el recorrido en profundidad del directorio para dar lugar a una estructura arborescente comparable. Tal como aborda la \referenciaSeccion{subsec:tecFSA}, la \textit{File System Access API} es la interfaz que permite utilizar el directorio asignado por el estudiante para acceder a los contenidos específicos de un ejercicio y poder explorarlos en profundidad. La estructura que se obtiene cuando un estudiante proporciona un directorio local en un navegador compatible con la API es directamente recorrible de forma recursiva, ya que tiene aspecto de árbol. El \referenciaCodigo{cod:sincroConFSA} es el procedimiento implementado para esta casuística. Sin embargo, cuando se emplea el mecanismo sustitutivo para navegadores no compatibles procedente del \textit{ponyfill} empleado ---de utilización justificada en la citada sección---, la estructura de ficheros contenidos recursivamente dentro del directorio se obtiene de forma plana, y debe ser interpretada para obtenerse un árbol basado en las rutas relativas de cada fichero obtenido, tal como se hace en el \referenciaCodigo{cod:sincroSinFSA}.
+
+Sin embargo, este doble algoritmo tiene una limitación: cuando se utiliza un navegador compatible con la \textit{File System Access API}, se permite al navegador acceder en tiempo real a la completitud de ficheros y directorios incluidos recursivamente dentro de la carpeta autorizada con independencia de cuándo el usuario dio su autorización, mientras que el mecanismo alternativo del \textit{ponyfill} únicamente concede acceso a una instantánea, devolviendo los ficheros existentes en el momento en el que el usuario autorizó la visualización de los contenidos de una carpeta. Como consecuencia de esta limitación, se ha decidido permitir realizar la sincronización únicamente en el caso de los navegadores compatibles y mantener la implementación alternativa para activar eventualmente un mecanismo de sincronización manual de los ficheros de un ejercicio.
+
+\begin{lstlisting}[language=TypeScript,caption={Método para el recorrido en profundidad de un directorio mediante la \textit{File System Access API}.},label=cod:sincroConFSA]
+public async fsaAPI(curDirectory: FileSystemDirectoryHandle, parent?: DirectoryNode): Promise<DirectoryNode | undefined>
+{
+    const childrenNodesList: Node[] = [];
+    const directoryNode: DirectoryNode = new DirectoryNode({
+        name: curDirectory.name,
+        children: childrenNodesList,
+        parentDirectoryNode: parent
+    });
+    for await (const entry of curDirectory.values()) {
+        if (entry instanceof FileSystemFileHandle) {
+            let fileInformation = await entry.getFile();
+            childrenNodesList.push(new FileNode({
+                name: entry.name,
+                lastModifiedTime: fileInformation.lastModified,
+                fileBlob: fileInformation,
+                parentDirectoryNode: directoryNode
+            }));
+        } else if (entry instanceof FileSystemDirectoryHandle) {
+            const subdirInfo = await fsaAPI(entry, directoryNode);
+            if (subdirInfo !== undefined) childrenNodesList.push(subdirInfo);
+        }
+    }
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=TypeScript,caption={Procedimiento para la interpretación de la lista de ficheros obtenida mediante el \textit{ponyfill} como un árbol comparable.},label=cod:sincroSinFSA]
+public noFsaAPI(recursiveFileList: File[]): DirectoryNode | undefined
+{
+    if (recursiveFileList.length === 0) return undefined;
+    const root = new DirectoryNode({
+        name: recursiveFileList[0].webkitRelativePath.split(/\/|\\/)[0],
+        children: []
+    });
+    for (const handler of recursiveFileList) {
+        if (!handler.webkitRelativePath || handler.webkitRelativePath === "")
+            return undefined;
+        noFsaAPIRecursive(handler, root);
+    }
+    return root;
+}
+
+private noFsaAPIRecursive(file: File, dirNode: DirectoryNode, relPath?: string[])
+{
+    let path = relPath ?? file.webkitRelativePath.split(/\/|\\/).slice(1);
+    if (path.length === 1) {
+        dirNode.children.push(new FileNode({
+            name: path[0],
+            lastModifiedTime: file.lastModified,
+            fileBlob: file,
+            parentDirectoryNode: dirNode
+        }));
+    } else {
+        const children = dirNode.children.filter(child => child.name === path[0]);
+        if (children.length === 1) {
+            noFsaAPIRecursive(file, children[0] as DirectoryNode, path.slice(1));
+        } else {
+            const subdirNode = new DirectoryNode({
+                name: path[0],
+                children: [],
+                parentDirectoryNode: dirNode
+            });
+            dirNode.children.push(subdirNode);
+            noFsaAPIRecursive(file, subdirNode, path.slice(1));
+        }
+    }
+}
+\end{lstlisting}
+
+La divergencia estructural anterior ha conducido a la generación de varios tipos abstractos para modelar un árbol de ficheros y directorios mediante una interfaz \texttt{Node} y las clases derivadas \texttt{FileNode} (cuyas instancias representan los ficheros y componen la frontera del árbol) y \texttt{DirectoryNode} (para directorios), siendo los tipos devueltos por los anteriores algoritmos. Estos tipos permiten, además, implementar un algoritmo de comparación de dos árboles dados por sus nodos \texttt{DirectoryNode} raíces de modo que, dados dos árboles A y B, se obtengan tres listas: los nodos de A no presentes en B (eliminaciones), los nodos de B no presentes en A (creaciones) y los nodos que, estando presentes en ambas estructuras, tengan datos diferentes (modificaciones). Así, se implementa un algoritmo que permite comparar dos estructuras realizadas sobre un mismo directorio en instantes temporales diferentes. Este algoritmo queda plasmado en el \referenciaCodigo{cod:comparacionDirNodes}.
+
+\begin{lstlisting}[language=TypeScript,caption={Algoritmo recursivo para la comparación de dos árboles de directorios dados dos nodos raíces \texttt{old} y \texttt{new}.},label=cod:comparacionDirNodes]
+public dirDiff(old: DirectoryNode, new: DirectoryNode): Diff {
+    let diff: Diff = new Diff();
+    let o, n: number = 0;
+    while (o < old.children.length || n < new.children.length) {
+        if (o < old.children.length && n < new.children.length
+            && old.children[o].name === new.children[n].name
+        ) {
+            if (old.children[o] instanceof FileNode
+                && new.children[n] instanceof FileNode
+            ) {
+                const oldFileNode = old.children[o] as FileNode;
+                const newFileNode = new.children[n] as FileNode;
+                if (oldFileNode.lastModifiedTime < newFileNode.lastModifiedTime)
+                    diff.addModified(newFileNode);
+            } else if (
+                old.children[o] instanceof DirectoryNode 
+                && new.children[n] instanceof DirectoryNode
+            ) {
+                const subdirDiff = dirDiff(
+                    <DirectoryNode>old.children[o],
+                    <DirectoryNode>new.children[n]
+                );
+                diff.addCreated(...subdirDiff.created);
+                diff.addDeleted(...subdirDiff.deleted);
+                diff.addModified(...subdirDiff.modified);
+            } else {
+                diff.addDeleted(old.children[o]);
+                diff.addCreated(new.children[n]);
+            }
+
+            o++;
+            n++;
+        } else {
+            if (o >= old.children.length) {
+                diff.addCreated(new.children[n]);
+                n++;
+            } else if (n >= new.children.length) {
+                diff.addDeleted(old.children[o]);
+                o++;
+            } else {
+                if (old.children[o].name.localeCompare(new.children[n].name)) {
+                    diff.addCreated(new.children[n]);
+                    n++;
+                } else {
+                    diff.addDeleted(old.children[o]);
+                    o++;
+                }
+            }
+        }
+    }
+    return diff;
+}
+\end{lstlisting}
+
+Una vez ejecutado el anterior algoritmo, se obtienen las creaciones, modificaciones y eliminaciones producidas entre los dos árboles comparados. Estas listas de elementos a crear, modificar y eliminar dan lugar a una lista de ``trabajos de sincronización'' que se añaden a una cola de prioridad. La cola empleada es de implementación propia y dispone de dos niveles de prioridad. Los trabajos de eliminación tienen prioridad sobre los de creación y modificación porque no requieren del envío del cuerpo de un fichero completo sino de, únicamente, la ruta relativa del fichero que debe ser eliminado. Una vez encolados los trabajos, da comienzo el algoritmo que toma trabajos de la cola y los envía al servidor, tal como se aprecia en el \referenciaCodigo{cod:serverSync}. Este procedimiento viene controlado por un booleano que actúa como mecanismo de exclusión, previniendo su ejecución paralela más de una vez para evitar posibles duplicidades en el envío de peticiones. Una vez ejecutado, envía todos los trabajos encolados pendientes, desencolándolos uno a uno y gestionando su transmisión según su tipo. Es un algoritmo bloqueante, deteniendo la ejecución del código hasta ver resuelta cada petición enviada al servidor, garantizando la no concurrencia de peticiones para tratar de evitar saturar la comunicación con el servidor. Emplea, además, un método auxiliar que permite manejar los eventos HTTP ocurridos durante el transcurso de la petición para reflejar en la interfaz de usuario el progreso en la ejecución de cada petición, permitiendo ``aplanar'' los observables empleados para utilizarlos como promesas.
+
+\begin{lstlisting}[language=TypeScript,caption={Algoritmo que remite trabajos de sincronización al servidor a partir de los contenidos de una cola de prioridad.},label=cod:serverSync]
+public async serverSync(): Promise<void> {
+    if (!activeSyncSemaphore) {
+        while (syncJobs.pending.pendingElements() !== 0) {
+            activeSyncSemaphore = true;
+            let newSyncWork = syncJobs.pending.dequeue();
+            if (newSyncWork === undefined) break;
+            let current = newSyncWork;
+            currentSyncStatus = "SENDING_FILES";
+            let fileReqPromise: Promise<any> = Promise.resolve();
+            if (current.type === "CREATION") {
+                fileReqPromise = httpEventObservableAsPromise(
+                    createFileByExerciseIdRelativePath(
+                        eui.exercise.id, current.relativePath, current.fileBlob
+                    )
+                );
+            } else if (current.type === "MODIFICATION") {
+                fileReqPromise = httpEventObservableAsPromise(
+                    fileExchangeService.editFileByExerciseIdRelativePath(
+                        eui.exercise.id, current.relativePath, current.fileBlob
+                    )
+                );
+            } else if (current.type === "DELETION") {
+                fileReqPromise = httpEventObservableAsPromise(
+                    fileExchangeService.deleteFileByExerciseIdRelativePath(
+                        eui.exercise.id, current.relativePath
+                    )
+                );
+            }
+            if (fileReqPromise !== undefined) {
+                eui.modifiedFiles = [current.node.relativePath];
+                await euiService.editInfoByExercise(eui.exercise, eui);
+                await httpEventPromiseFinalizationHandler(fileReqPromise);
+            }
+        }
+        currentSyncStatus = "WAITING_FOR_CHANGES";
+    }
+    activeSyncSemaphore = false;
+}
+\end{lstlisting}
+
+Este algoritmo queda orquestado para su ejecución completa de forma automática cada 500 milisegundos, obteniendo un nuevo árbol, encolando trabajos de sincronización según el tipo de diferencias encontradas respecto al árbol anterior y lanzando el procedimiento para la sincronización con el servidor. Cada ejecución reemplaza el árbol anterior por el nuevo obtenido, minimizando las diferencias encontradas en cada ejecución.
