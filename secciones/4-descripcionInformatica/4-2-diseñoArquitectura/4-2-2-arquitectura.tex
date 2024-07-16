@@ -1,0 +1,40 @@
+\begin{figure}[ht]
+    \centering
+    \begin{tikzpicture}[
+        > = latex',
+        sistema/.style = {draw, minimum height=7mm,
+                        inner sep=1mm, outer sep = 0mm}
+        ]
+
+        \node[sistema, fill={rgb,255: red,232; green,246; blue,229}] (servidor) {
+            \begin{tabular}{cc}
+                \multirow{2}{*}{\includegraphics[height=0.7cm]{imagenes/utilizadas/4-2-arquitectura/logotipos/spring.png}} & Servidor \\
+                                                                                               & \footnotesize{Spring Boot} \\
+            \end{tabular}
+        };
+        \node[sistema, above=10mm of servidor, fill={rgb,255: red,250; green,239; blue,228}] (baseDatos) {
+            \begin{tabular}{cc}
+                \multirow{2}{*}{\includegraphics[height=0.7cm]{imagenes/utilizadas/4-2-arquitectura/logotipos/mySQL.png}} & Base de datos \\
+                                                                                              & \footnotesize{MySQL} \\
+            \end{tabular}
+        };
+        \node[sistema, below right=3mm and 1mm of servidor, fill={rgb,255: red,255; green,205; blue,216}] (appweb) {
+            \begin{tabular}{cc}
+                \multirow{2}{*}{\includegraphics[height=0.7cm]{imagenes/utilizadas/4-2-arquitectura/logotipos/angular.png}} & Aplicación web\\
+                                                                                               & \footnotesize{Angular}\\
+            \end{tabular}
+        };
+        \node[sistema, below left=3mm and 1mm of servidor, fill={rgb,255: red,215; green,243; blue,255}] (cliente) {
+            \begin{tabular}{cc}
+                \multirow{2}{*}{\includegraphics[height=0.7cm]{imagenes/utilizadas/4-2-arquitectura/logotipos/vscode.png}} & Extensión\\
+                                                                                               & \footnotesize{Visual Studio Code}\\
+            \end{tabular}
+        };
+
+        \draw[<->] (servidor.west) -| node[above] {\scriptsize API REST + Web Sockets} (cliente);
+        \draw[<->] (servidor.east) -| node[above] {\scriptsize API REST + Web Sockets} (appweb);
+        \draw[<->] (servidor) -- node[right] {\scriptsize Persistencia} (baseDatos);
+    \end{tikzpicture}
+    \caption{Disposición arquitectónica de los componentes de \textit{VSCode4Teaching}.}
+    \label{fig:arquitectura}
+\end{figure}

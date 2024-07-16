@@ -1,0 +1,83 @@
+\subsection{Servidor}
+\label{subsec:tecServidor}
+Si bien este Trabajo Fin de Grado pone el foco en la generación del nuevo \textit{frontend} Angular (véase la \referenciaSeccion{subsec:tecAppWeb}), esto no es óbice para exponer a continuación las tecnologías empleadas para la generación del servidor, que es la base sobre la que funciona el conjunto del proyecto. Este servidor está implementado en \textbf{Spring Boot} (basado en el \textit{framework} Spring), hace uso de un sistema de persistencia materializado en una \textbf{base de datos MySQL}, potencia su funcionalidad mediante bibliotecas gestionadas con \textbf{Maven} e incorpora una batería de pruebas automáticas sobre la plataforma \textbf{JUnit}.
+
+\subsubsection{Persistencia de la información: MySQL}
+\label{subsec:tecMySQL}
+\textit{VSCode4Teaching} asienta su lógica de negocio sobre un modelo del dominio que introduce varias entidades interrelacionadas, tal como queda reflejado en la \referenciaSeccion{subsec:arqDominio}. Para la persistencia de la información asociada a cada entidad y sus interconexiones, se hace uso de un sistema gestor de bases de datos (SGBD) de tipo relacional. En estos sistemas, cada base de datos contiene una colección de tablas, que son estructuras bidimensionales que almacenan tuplas (registros) de información estructurada en atributos (columnas) comunes a todas, permitiéndose el establecimiento de relaciones lógicas entre los atributos de distintas tablas para dar lugar a un conjunto de datos coherente en el dominio especificado.
+
+Concretamente, el sistema gestor empleado para la persistencia de la información en el proyecto \textit{VSCode4Teaching} es MySQL. Este gestor es mantenido por Oracle Corporation y se divulga con licencia pública de GNU (GPL) en su versión \textit{Community}, abierta a su uso no comercial para la comunidad \cite{MySQL}. Según la \textit{Encuesta de Desarrolladores} realizada por Stack Overflow en su edición de 2023 \cite{subsec:tecAppAngularSurvey}, MySQL es el segundo sistema gestor de bases de datos más empleado, alcanzando una cuota de uso del $41,09\%$ según los más de $75\ 000$ encuestados, viéndose superado por primera vez por PostgreSQL, su principal alternativa, también \textit{software} libre divulgado bajo su propia licencia (PostgreSQL License, similar a la licencia MIT) \cite{PostgreSQL}, que alcanza una cuota de uso del $45,55\%$ y cuenta en la actualidad con un gran respaldo entre los desarrolladores profesionales.
+
+\subsubsection{Java y Spring}
+\label{subsec:tecSpring}
+El servidor de \textit{VSCode4Teaching} es una aplicación basada en el \textit{framework} \textbf{Spring}, que hace uso de \textbf{Java} como plataforma para su implementación y ejecución.
+
+\paragraph{Java}\mbox{} \\
+Java es ``una plataforma informática de lenguaje de programación creada por Sun Microsystems en 1995'' \cite{Java}, actualmente parte de Oracle Corporation. Esta plataforma proporciona tres componentes principales: el propio lenguaje de programación, el entorno en tiempo de ejecución y las bibliotecas incorporadas por defecto.
+
+El lenguaje de programación, también llamado Java, es uno de los más empleados en la actualidad, consolidado en la cuarta posición del índice TIOBE desde hace más de un año con una cuota de uso del $8,40\%$ (junio de 2024) \cite{TIOBE}. Es orientado a objetos y destaca por su tipado fuerte y el soporte a las características esenciales de este paradigma: abstracción, encapsulación, jerarquía, modularización, herencia, polimorfismo y genericidad.
+
+La ejecución de programas implementados en este lenguaje requiere como paso intermedio la generación de \textit{bytecode}, que es un código objeto\footnote{Código objeto. Es un paso intermedio producido al compilar un código fuente y que puede ser interpretado mediante programas específicos.} apto para su posterior ejecución mediante el entorno en tiempo de ejecución de Java, \textit{Java Runtime Environment} (JRE), que basa su funcionamiento en la máquina virtual de Java (\textit{Java Virtual Machine} o JVM). Este formato de compilación a un código intermedio posteriormente interpretado en ejecución mediante un compilador JIT (\textit{just in time}) brinda a la plataforma Java una de sus capacidades más destacadas: la independencia del sistema operativo para la ejecución de las aplicaciones, ya que un mismo artefacto compilado puede ser ejecutado sobre cualquier JRE con independencia del sistema operativo en el que se generó.
+
+A todas estas características se añade un tercer factor determinante: el conjunto de las bibliotecas incorporadas nativamente en Java, que proporcionan una gran cantidad de funcionalidad apta para todos los sistemas, permitiendo el acceso unificado a recursos para la gestión de la concurrencia, de las comunicaciones por red o de las interfaces gráficas de usuario, entre muchas otras.
+
+\paragraph{Spring}\mbox{} \\
+Spring es el \textit{framework} más empleado para la construcción de aplicaciones web basadas en la plataforma Java. Este dato está ratificado por la \textit{Encuesta de Desarrolladores} de Stack Overflow que, en su edición de 2023 \cite{subsec:tecAppAngularSurvey}, afirma que el $11,95\%$ de los encuestados utiliza Spring, siendo la duodécima tecnología web más empleada según la anterior clasificación, que aglutina una amplia variedad de tecnologías para el lado cliente, el lado servidor y algunos CMS\footnote{CMS. Siglas de ``sistema de gestión de contenidos'' (del inglés \textit{System Content Manager}). Habitualmente orientadas a la web, son aplicaciones que ponen a disposición de sus usuarios un conjunto de herramientas visuales que facilitan la generación de páginas y aplicaciones web con escasa o nula necesidad de implementación de código fuente.}.
+
+Tal como introduce su propia información, Spring ``proporciona un modelo de configuración y programación fácilmente comprensible para crear aplicaciones modernas basadas en Java'' \cite{SpringFramework}. Este modelo está basado en el ecosistema alrededor del \textit{framework}: existe una ingente cantidad de bibliotecas que se pueden añadir a las aplicaciones basadas en Spring para introducirles funcionalidades adicionales de interés. Tanto Spring como todas sus dependencias son \textit{software} libre y se distribuyen en abierto bajo licencia Apache 2.0.
+
+De entre todas las bibliotecas disponibles y empleadas para implementar el servidor, una de las más destacadas es \textbf{Spring Boot}, que facilita la utilización de Spring para ``crear fácilmente aplicaciones autocontenidas aptas para entornos de producción [\dots] que pueden simplemente ejecutarse'' \cite{SpringBoot}, ya que dispone de un servidor web embebido e introduce algunas dependencias de Spring por defecto para simplificar la configuración de la aplicación.
+
+Otro proyecto del ecosistema Spring es \textbf{Spring Data}, que es un conjunto de bibliotecas que ``proporciona un modelo de acceso a datos familiar, consistente y basado en Spring que facilita el acceso a bases de datos relacionales y no relacionales'' \cite{SpringData} que, específicamente, es utilizado en el servidor para acceder a la base de datos MySQL empleada como sistema de persistencia de la información (véase la \referenciaSeccion{subsec:tecMySQL}), relegando los detalles de la comunicación y utilización de este sistema a un ORM\footnote{ORM. Siglas de ``mapeador objeto-relacional'' (del inglés \textit{Object Relational Mapper}). Es una pieza \textit{software} que permite interactuar con bases de datos mediante clases y objetos en el código con el fin de facilitar su uso.} que brinda la capacidad para la interacción bidireccional con la base de datos, encapsulando la necesidad de utilizar consultas y operaciones SQL para ello.
+
+\subsubsection{Maven}
+\label{subsec:tecMaven}
+Los proyectos asentados sobre Java como plataforma tecnológica pueden hacer uso de Maven, que es un ``\textit{software} de gestión de proyectos basado en el concepto de un modelo de objetos de proyecto (\textit{Project Object Model} o POM) centralizado que permite manejar las distintas etapas de su ciclo de vida (construcción, ejecución, verificación\dots) y la generación de informes y documentación'' \cite{Maven}.
+
+Creado por la \textit{Apache Software Foundation} y divulgado bajo licencia Apache 2.0, Maven permite gestionar proyectos mediante la centralización de su configuración en un único fichero, el POM (habitualmente llamado \texttt{pom.xml}), que está situado en la raíz de los proyectos Maven y recoge aspectos básicos de la definición del componente, tales como su nombre, licencia o autoría, además de características del \textit{software}, incluyendo la versión del componente, dependencias que emplea y otras configuraciones específicas para su compilación o ejecución.
+
+Sirva como ejemplo el POM del servidor de \textit{VSCode4Teaching}, del que se incluye un fragmento en el \referenciaCodigo{cod:pomServidor}. Esta definición hace uso de algunos de los rasgos más importantes de la configuración mediante Maven: la declaración de la dependencia de Spring Boot como \texttt{parent} y de algunas de sus dependencias asociadas (\texttt{dependencies}), la declaración del nombre del artefacto generado y su versión, nombre y descripción y la versión de Java sobre la que se desarrolla (y, por tanto, la mínima requerida para su ejecución), entre otras configuraciones para su compilación y ejecución (\texttt{build}).
+
+\begin{lstlisting}[language=XML,caption={Fragmento adaptado del fichero para la configuración de Maven aplicado en el servidor del proyecto (\texttt{pom.xml}).},label=cod:pomServidor]
+<project [...]>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.7.16</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.vscode4teaching</groupId>
+    <artifactId>vscode4teaching-server</artifactId>
+    <version>2.2.1</version>
+
+    <name>VSCode 4 Teaching</name>
+    <description>Server side of VSCode 4 Teaching extension.</description>
+
+    <properties>
+        <java.version>11</java.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        [...]
+    </dependencies>
+
+    <build>
+        [...]
+    </build>
+</project>
+\end{lstlisting}
+
+\subsubsection{JUnit}
+\label{subsec:tecJUnit}
+El servidor de \textit{VSCode4Teaching} cuenta con una batería de pruebas automáticas que permite su verificación y aseguramiento de su calidad, tal como se detalla en la \referenciaSeccion{subsec:testingServidor}. Estas pruebas se asientan sobre JUnit, que es una biblioteca muy extendida para la implementación y ejecución de pruebas o \textit{tests} en proyectos basados en la plataforma Java \cite{JUnit}. Fue creada por Kent Beck y Erich Gamma y se distribuye como código libre con licencia Eclipse Public License.
+
+JUnit brinda a los desarrolladores la posibilidad de implementar pruebas basadas en aserciones ---esto es, comparaciones estrictas entre valores esperados y valores obtenidos tras la ejecución de las pruebas---, introduciendo soporte a la parametrización de pruebas (es decir, al uso de colecciones de distintos datos de prueba) y a los dobles, que son piezas \textit{software} que permiten reemplazar el comportamiento que tendrán ciertos componentes relacionados y utilizados en el SUT\footnote{SUT. Siglas de ``sujeto bajo pruebas'' (del inglés \textit{Subject Under Test}. Respecto a una prueba automática de \textit{software}, es la unidad del \textit{software} que el \textit{test} busca validar.)} que quedan verificados mediante otras pruebas. Es posible ejecutar la batería de pruebas manualmente mediante Maven y, además, se integra fácilmente con sistemas de integración continua, tal como se hace en este proyecto \textit{software} (véase la \referenciaSeccion{subsec:rn5} a este respecto).

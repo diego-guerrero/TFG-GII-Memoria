@@ -1,0 +1,13 @@
+\subsubsection{\texttt{RF-12}: marcado de ejercicio como finalizado}
+\label{subsec:rf12}
+
+Tal como introduce el \referenciaConTT{subsec:rf9}{RF-9}, los estudiantes disponen de la capacidad para visualizar el detalle de los cursos en los que están matriculados al seleccionar un directorio local, pudiendo ver los ejercicios que los componen, en qué etapa del progreso de su realización se encuentran y realizar distintas acciones con ellos según su estado: mientras que los no comenzados únicamente pueden ser iniciados y pasan al estado ``en progreso'' (\referenciaConTT{subsec:rf10}{RF-10}), los ejercicios que se están realizando y sincronizando en tiempo real pueden ser finalizados. Para ello, los estudiantes pueden pulsar el botón ``Finish exercise'' (finalizar ejercicio) que aparece en la parte inferior de cada uno de los ejercicios en progreso, tal como sucede en la \referenciaFigura{fig:reqf9-1} con los ejercicios ``Exercise 1'' y ``Exercise 4''.
+
+Una vez acometida esta acción sobre un ejercicio, se guardará como finalizado, trasladándose en la interfaz de usuario al área destinada a mostrar estos ejercicios (panel sombreado en verde con título ``Finished''). Esta acción comportará, además, la parada de la sincronización automática, ya que los ejercicios finalizados no pueden ser modificados, consolidando su último punto de progreso sincronizado en el servidor como propuesta final del estudiante para la resolución del ejercicio.
+
+% \begin{figure}[ht]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{imagenes/utilizadas/4-3-implementacion/rf12-1.png}
+%     \caption{Visualización del estudiante tras .}
+%     \label{fig:reqf12-1}
+% \end{figure}
